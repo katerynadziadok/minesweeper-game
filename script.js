@@ -1,10 +1,10 @@
-
 // Set this constant to true to debug the placement of bombs without
 // having to click on all cells to reveal them.
 const CHEAT_REVEAL_ALL = false;
 
-const ROWS_COUNT = 10;
-const COLS_COUNT = 10;
+const ROWS_COUNT = 15;
+const COLS_COUNT = 15;
+const BOMBS_COUNT = 25;
 
 var defeat = false;
 var victory = false;
@@ -27,9 +27,12 @@ for (var row = 0; row < ROWS_COUNT; row++) {
 
 //
 // TODO: Task 1 - add some bombs at fixed positions.
-// cells[0][1].isBomb = true;
-// cells[5][4].isBomb = true;
-// cells[9][9].isBomb = true;
+/**cells[0][1].isBomb = true;
+cells[1][7].isBomb = true;
+cells[4][9].isBomb = true;
+cells[8][2].isBomb = true;
+cells[9][2].isBomb = true;
+cells[9][9].isBomb = true;*/
 
 //
 // TODO: Task 2 - Comment out the code of task 1. Instead of adding bombs in fixed places, add 10 of them in random places.
@@ -37,24 +40,85 @@ for (var row = 0; row < ROWS_COUNT; row++) {
 //                other constants.
 //
 
+let q = 0;
+for (q = 0; q < BOMBS_COUNT; q++) {
+  let randomIndex1 = Math.floor(Math.random() * 15);
+  let randomIndex2 = Math.floor(Math.random() * 15);
+  cells[randomIndex1][randomIndex2].isBomb = true;
+  // console.log(randomIndex1, randomIndex2);
+}
 
 // Once the game has been initialized, we "render" it.
 render();
 
+function countAdjacentBombs(row, col) {
+  // the function countAdjacentBombs() is called once for each cell
+  //number is displayed in the cell if the return value is greater than 1.
+  let bombCount = 0;
+
+  // console.log("checking cell", row, col);
+  for (let i = -1; i <= 1; i++) {
+    for (let c = -1; c <= 1; c++) {
+      // console.log("checking coords", i, c)
+      let newRow = row + i;
+      let newCol = col + c;
+      if (newRow >= 0 && newRow < ROWS_COUNT && newCol >= 0 && newCol < COLS_COUNT) {  
+        if (cells[newRow][newCol].isBomb) {
+          bombCount++;
+        }
+      //if (i != row || c != col) {
+      // }
+      }
+    }
+  }
+  //console.log(bombCount);
+  return bombCount;
+}
+
+/**const checkingArea = [
+  cells[row][col + 1],
+  cells[row][col - 1],
+  cells[row + 1][col],
+  cells[row + 1][col + 1],
+  cells[row + 1][col - 1],
+  cells[row - 1][col],
+  cells[row - 1][col + 1],
+  cells[row - 1][col - 1]
+]; */
 
 //
 // Game functions definitions
 //
 
 function discoverCell(row, col) {
-  //
-  // TODO: Task 5 - Reveal cells when clicked.
-  //
+  if (row < 0 || row >= ROWS_COUNT || col < 0 || col >= COLS_COUNT) {
+    return;
+  }
+  if (cells[row][col].discovered) {
+    return;
+  }
 
-  //
+  console.log("discovering cell", row, col);
+  cells[row][col].discovered = true;
+  if (cells[row][col].isBomb) {
+    defeat = true;
+  }
+  bombCount = countAdjacentBombs(row, col);
+  console.log("bomb count nearby", bombCount);
+  if (bombCount == 0) {
+    console.log("no bombs nearby");
+  discoverCell(row, col + 1);
+  discoverCell(row, col - 1);
+  discoverCell(row + 1, col);
+  discoverCell(row + 1, col + 1);
+  discoverCell(row + 1, col - 1);
+  discoverCell(row - 1, col);
+  discoverCell(row - 1, col + 1);
+  discoverCell(row - 1, col - 1);
+}
+
   // TODO: Task 6 - Discover neighbor cells recursively, as long as there are no adjacent bombs to the current cell.
   //
-
   //
   // TODO: Task 8 - Implement defeat. If the player "discovers" a bomb (clicks on it without holding shift), set the variable defeat to true.
   //
@@ -69,13 +133,13 @@ function flagCell(row, col) {
 
 // This function is called once for each cell when rendering the game. The row and col of the current cell is
 // passed to the functionn
-function countAdjacentBombs(row, col) {
-  //
-  // TODO: Task 4 - Adjacent bombs are bombs in cells touching our cell (also diagonally). Implement this function
-  //                so that it returns the count of adjacent cells with bombs in them. 
-  //
-  return 1;
-}
+// function countAdjacentBombs(row, col) {
+//   //
+//   // TODO: Task 4 - Adjacent bombs are bombs in cells touching our cell (also diagonally). Implement this function
+//   //                so that it returns the count of adjacent cells with bombs in them.
+//   //
+//   return 1;
+// }
 
 function getBombsCount() {
   //
@@ -121,7 +185,9 @@ function getMessage() {
 // "Render" the game. Update the content of the page to reflect any changes to the game state.
 function render() {
   var playfield = document.getElementById("playfield");
+
   var html = "";
+  
   for (var row = 0; row < ROWS_COUNT; row++) {
     html += '<div class="row">';
     for (var col = 0; col < COLS_COUNT; col++) {
@@ -150,30 +216,32 @@ function render() {
         }
       } else {
         if (cell.hasBeenFlagged) {
-          cellText = "🚩"
+          cellText = "🚩";
         }
       }
       html += `<div class="cell ${cssClass}" style="color:${textColor}" onclick="onCellClicked(${row}, ${col}, event)">${cellText}</div>`;
     }
-    html += "</div>"
+    html += "</div>";
   }
   playfield.innerHTML = html;
 
   // Defeat screen
   var body = document.getElementsByTagName("body")[0];
   if (defeat) {
-    body.classList.add("defeat")
+    body.classList.add("defeat");
   }
 
   // Victory screen
   if (victory) {
-    body.classList.add("victory")
+    body.classList.add("victory");
   }
 
   // Update stats
   document.getElementById("bombs-count").innerText = getBombsCount().toString();
-  document.getElementById("cleared-cells-count").innerText = getClearedCells().toString();
-  document.getElementById("total-cells-to-clear").innerText = getTotalCellsToClear().toString();
+  document.getElementById("cleared-cells-count").innerText =
+    getClearedCells().toString();
+  document.getElementById("total-cells-to-clear").innerText =
+    getTotalCellsToClear().toString();
 
   // Update message
   document.getElementById("message").innerHTML = getMessage();
