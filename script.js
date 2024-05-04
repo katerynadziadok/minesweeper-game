@@ -2,9 +2,9 @@
 // having to click on all cells to reveal them.
 const CHEAT_REVEAL_ALL = false;
 
-const ROWS_COUNT = 15;
-const COLS_COUNT = 15;
-const BOMBS_COUNT = 25;
+const ROWS_COUNT = 10;
+const COLS_COUNT = 10;
+const BOMBS_COUNT = 15;
 
 var defeat = false;
 var victory = false;
@@ -50,8 +50,8 @@ cells[9][9].isBomb = true;*/
 
 let q = 0;
 for (q = 0; q < BOMBS_COUNT; q++) {
-  let randomIndex1 = Math.floor(Math.random() * 15);
-  let randomIndex2 = Math.floor(Math.random() * 15);
+  let randomIndex1 = Math.floor(Math.random() * ROWS_COUNT);
+  let randomIndex2 = Math.floor(Math.random() * COLS_COUNT);
   cells[randomIndex1][randomIndex2].isBomb = true;
   //console.log(randomIndex1, randomIndex2);
 }
@@ -169,7 +169,7 @@ function getBombsCount() {
   //
   // TODO: Task 9 - Implement stats: the counters currently always display 0, calculate and return the relevant values.
   //
-  let bombsCount = 25;
+  let bombsCount = BOMBS_COUNT;
   for (let i = 0; i < ROWS_COUNT; i++) {
     for (let j = 0; j < COLS_COUNT; j++) {
       
@@ -186,22 +186,50 @@ function getClearedCells() {
   //
   // TODO: Task 9 - Implement stats: the counters currently always display 0, calculate and return the relevant values.
   //
-  return 0;
+  let clearedCells = 0;
+  console.log("cleared_cells:" + clearedCells);
+  for (let i = 0; i < ROWS_COUNT; i++) {
+    for (let j = 0; j < COLS_COUNT; j++) {
+      let cell = cells[i][j];
+      if (cell.hasBeenFlagged || cell.discovered) {
+        clearedCells++;
+        console.log(clearedCells);
+      }
+    }
+  }
+  return clearedCells;
 }
 
+// TODO: Task 9 - Implement stats: the counters currently always display 0, calculate and return the relevant values.
 function getTotalCellsToClear() {
-  //
-  // TODO: Task 9 - Implement stats: the counters currently always display 0, calculate and return the relevant values.
-  //
-  return 0;
+  let totalClearedCells = ROWS_COUNT * COLS_COUNT;
+  console.log("totalClearedCells:" + totalClearedCells);
+  for (let i = 0; i < ROWS_COUNT; i++) {
+    for (let j = 0; j < COLS_COUNT; j++) {
+      let cell = cells[i][j];
+      if (cell.hasBeenFlagged || cell.discovered) {
+        totalClearedCells--;
+        console.log(totalClearedCells);
+      }
+    }
+  }
+  return totalClearedCells;
 }
 
 function checkForVictory() {
   //
   // TODO: Task 10 - Implement victory. If the player has revealed as many cells as they must (every cell that isn't a
   //                 bomb), set variable victory to true.
-  //
-  return 0;
+  let clearedCells = getClearedCells();
+  let totalClearedCells = getTotalCellsToClear();
+  let bombCount = getBombsCount();
+  if (bombCount === 0 && totalClearedCells === 0 || clearedCells == ROWS_COUNT * COLS_COUNT)  {
+      return victory = true;
+   } 
+  else if (clearedCells === 0) {
+    return victory = false;
+  }
+  return victory;
 }
 
 //
@@ -274,8 +302,7 @@ function render() {
   // Update stats
   document.getElementById("bombs-count").innerText = getBombsCount().toString();
   document.getElementById("cleared-cells-count").innerText = getClearedCells().toString();
-  document.getElementById("total-cells-to-clear").innerText =
-    getTotalCellsToClear().toString();
+  document.getElementById("total-cells-to-clear").innerText = getTotalCellsToClear().toString();
 
   // Update message
   document.getElementById("message").innerHTML = getMessage();
